@@ -75,7 +75,7 @@ def get_coin_candles(client: Client, coin_columns: list = []):
             res = requests.get(url, params=params, headers=headers)
             res_list = list(res.json())
             # UPbit API로부터 비정상적인 응답을 받는 경우 처리
-            if res_list[0] == 'name':
+            if not res_list or res_list[0] == 'name':
                 continue
             # UPbit API로부터 정상적인 응답을 받는 경우
             for elem in res_list:
