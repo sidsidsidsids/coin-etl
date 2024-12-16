@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import time
 from supabase import Client
@@ -64,7 +64,7 @@ def get_coin_candles(client: Client, coin_columns: list = []):
         url = "https://api.upbit.com/v1/candles/days"
         headers = {"accept": "application/json"}
         max_day = 200
-        current_date = str(datetime.today())[:10]
+        current_date = str(datetime.today() + timedelta(hours=9))[:10]
         # 코인 코드 리스트를 순회하며 해당 코인의 데이터 추출
         for coin in coin_columns:
             params = {

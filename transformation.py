@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from supabase import Client
 
 def transform_data(client: Client):
     try:
         supabase = client
-        input_date = datetime.now().strftime('%Y-%m-%d')
+        input_date = (datetime.now() + timedelta(hours=9)).strftime('%Y-%m-%d')
         '''
         수집한 코인 데이터를 기반으로 이동평균선(MA), RSI와 같은 지표를 계산하여 coin_candles_stage 테이블에 저장하는 함수
         function transform_coin_datas(input_date)

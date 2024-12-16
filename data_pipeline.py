@@ -3,10 +3,10 @@ from extraction import *
 from transformation import *
 from loading import *
 import time
-import datetime
+from datetime import datetime, timedelta
 
 try:
-    print("데이터 파이프라인 실행 시작 : ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    print("데이터 파이프라인 실행 시작 : ", (datetime.now() + timedelta(hours=9)).strftime('%Y-%m-%d %H:%M:%S'))
     print("----------------------------------------------")
 
     # Step 1: DB 연결
@@ -42,4 +42,4 @@ except Exception as e:
     print("에러 발생")
     print(e)
 print("----------------------------------------------")
-print("데이터 파이프라인 실행 완료 : ", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+print("데이터 파이프라인 실행 완료 : ", (datetime.now() + timedelta(hours=9)).strftime('%Y-%m-%d %H:%M:%S'))
