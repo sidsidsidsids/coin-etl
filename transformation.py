@@ -95,25 +95,43 @@ def transform_data(client: Client):
                 ma_7,
                 ma_14,
                 ma_50,
-                -- RSI 계산
+                -- RSI 계산 (데이터 부족 시 NULL)
                 CASE
                     WHEN COUNT(*) OVER (
                         PARTITION BY name_code
                         ORDER BY candle_date ASC
                         ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
                     ) < 14 THEN NULL
-                    ELSE ROUND(100 - (100 / (1 + 
-                        (SUM(CASE WHEN change_price > 0 THEN change_price ELSE 0 END) OVER (
+                    ELSE CASE
+                    WHEN COUNT(CASE WHEN change_price < 0 THEN 1 ELSE 0 END) OVER (
+                        PARTITION BY name_code 
+                        ORDER BY candle_date 
+                        ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
+                    ) = 0 THEN 100.00
+                    ELSE ROUND((100 - (100 / (1 + 
+                        ((SUM(CASE WHEN change_price > 0 THEN change_price ELSE 0 END) OVER (
                             PARTITION BY name_code 
                             ORDER BY candle_date 
                             ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
                         )) /
-                        NULLIF(SUM(CASE WHEN change_price < 0 THEN ABS(change_price) ELSE 0 END) OVER (
+                        NULLIF(COUNT(CASE WHEN change_price > 0 THEN 1 ELSE NULL END) OVER (
+                            PARTITION BY name_code
+                            ORDER BY candle_date
+                            ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
+                        ), 0))
+                        /
+                        ((SUM(CASE WHEN change_price < 0 THEN ABS(change_price) ELSE 0 END) OVER (
                             PARTITION BY name_code 
                             ORDER BY candle_date 
                             ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
-                        ), 0)
-                    ))::numeric, 2)
+                        )) /
+                        NULLIF(COUNT(CASE WHEN change_price < 0 THEN 1 ELSE NULL END) OVER (
+                            PARTITION BY name_code
+                            ORDER BY candle_date
+                            ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
+                        ), 0))
+                        ))::numeric), 2)
+                    END
                 END AS rsi
             FROM moving_averages
         ),
