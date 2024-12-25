@@ -33,7 +33,7 @@ def transform_data(client: Client):
             FROM
                 coin_candles
             WHERE
-                current_date - candle_date <= 50
+                input_date - candle_date <= 50
             ORDER BY
                 candle_date DESC
         ),
@@ -109,29 +109,19 @@ def transform_data(client: Client):
                         ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
                     ) = 0 THEN 100.00
                     ELSE ROUND((100 - (100 / (1 + 
-                        ((SUM(CASE WHEN change_price > 0 THEN change_price ELSE 0 END) OVER (
-                            PARTITION BY name_code 
-                            ORDER BY candle_date 
-                            ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
-                        )) /
-                        NULLIF(COUNT(CASE WHEN change_price > 0 THEN 1 ELSE NULL END) OVER (
-                            PARTITION BY name_code
-                            ORDER BY candle_date
-                            ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
-                        ), 0))
+                        (SUM(CASE WHEN change_price > 0 THEN change_price ELSE 0 END) OVER (
+                        PARTITION BY name_code 
+                        ORDER BY candle_date
+                        ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
+                        ))
                         /
-                        ((SUM(CASE WHEN change_price < 0 THEN ABS(change_price) ELSE 0 END) OVER (
+                        (SUM(CASE WHEN change_price < 0 THEN ABS(change_price) ELSE 0 END) OVER (
                             PARTITION BY name_code 
-                            ORDER BY candle_date 
-                            ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
-                        )) /
-                        NULLIF(COUNT(CASE WHEN change_price < 0 THEN 1 ELSE NULL END) OVER (
-                            PARTITION BY name_code
                             ORDER BY candle_date
                             ROWS BETWEEN 13 PRECEDING AND CURRENT ROW
-                        ), 0))
-                        ))::numeric), 2)
-                    END
+                        ))
+                    ))::numeric), 2)
+                END
                 END AS rsi
             FROM moving_averages
         ),
