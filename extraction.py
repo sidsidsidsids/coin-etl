@@ -65,6 +65,7 @@ def get_coin_candles(client: Client, coin_columns: list = []):
         headers = {"accept": "application/json"}
         max_day = 200
         current_date = str(datetime.today() + timedelta(hours=9))[:10]
+        insert_data = []
         # 코인 코드 리스트를 순회하며 해당 코인의 데이터 추출
         for coin in coin_columns:
             params = {
@@ -88,10 +89,9 @@ def get_coin_candles(client: Client, coin_columns: list = []):
                             .eq("candle_date", candle_date) \
                             .execute()
                 res_data = str(response).split("count")[0].split("=")[-1].strip()
-                # 새로운 데이터인 경우 DB에 insert
+                # 새로운 데이터인 경우 insert_data에 추가
                 if res_data == "[]":
-                    supabase.table("coin_candles") \
-                            .insert({
+                    insert_data.append({
                                 "name_code": name_code,
                                 "candle_date": candle_date,
                                 "opening_price": elem["opening_price"],
@@ -102,14 +102,15 @@ def get_coin_candles(client: Client, coin_columns: list = []):
                                 "candle_acc_trade_volume": elem["candle_acc_trade_volume"],
                                 "change_price": elem["change_price"],
                                 "change_rate": elem["change_rate"]
-                                }
-                            ) \
-                            .execute()
+                                })
                 # 새로운 데이터가 아닌 경우 그 이전 데이터도 존재한다고 판단하여 break
                 else:
                     break
             # API 요청 수 제한(초당 10회) 회피
             time.sleep(0.1)       
+        # DB에 데이터 insert
+        if insert_data:
+            supabase.table("coin_candles").insert(insert_data).execute()
         print('[O] get_coin_candles executed successfully')
     except Exception as e:
         print('[X] get_coin_candles execution occurred error')
